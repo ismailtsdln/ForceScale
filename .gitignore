@@ -1,0 +1,22 @@
+# Swift
+.build/
+Packages/
+Package.resolved
+.swiftpm/
+
+# Xcode
+build/
+DerivedData/
+*.xcodeproj/
+*.xcworkspace/
+*.xcscheme
+*.xcbkptlist
+*.xcuserstate
+xcuserdata/
+
+# macOS
+.DS_Store
+
+# ForceScale Specific
+.forcescale/
+calibration.json
