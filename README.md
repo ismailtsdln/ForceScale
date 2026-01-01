@@ -1,6 +1,6 @@
 # ForceScale
 
-### *Precision Weight Estimation via macOS Force Touch*
+## *Precision Weight Estimation via macOS Force Touch*
 
 ForceScale is a sophisticated macOS-native platform designed to estimate the weight of objects using raw pressure data from the Force Touch trackpad. By leveraging low-level sensor input and advanced calibration models, ForceScale bridges the gap between hardware sensors and user-centric measurement interfaces.
 
@@ -63,7 +63,7 @@ cp .build/release/forcescale /usr/local/bin/forcescale
 
 ## 💻 Command Line Interface (CLI)
 
-#### Calibration
+### Calibration
 
 Record a known mass to the calibration profile:
 
@@ -71,7 +71,7 @@ Record a known mass to the calibration profile:
 forcescale calibrate --weight 100
 ```
 
-#### Real-Time Measurement
+### Real-Time Measurement
 
 Initiate a live measurement session with visual pressure feedback:
 
@@ -79,7 +79,7 @@ Initiate a live measurement session with visual pressure feedback:
 forcescale measure --live
 ```
 
-#### Data Management
+### Data Management
 
 Export the current calibration profile in machine-readable format:
 
@@ -106,4 +106,4 @@ This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) f
 
 ---
 
-*Developed with ❤️ by [Ismail Tasdelen](https://github.com/ismailtasdelen)*
+*Developed with ❤️ by [Ismail Tasdelen](https://github.com/ismailtsdln)*
