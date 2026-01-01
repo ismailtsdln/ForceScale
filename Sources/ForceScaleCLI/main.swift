@@ -19,6 +19,11 @@ struct Calibrate: ParsableCommand {
     var weight: Double
     
     func run() throws {
+        guard MultitouchBridge.isAvailable else {
+            print("Error: Force Touch sensor not found on this device.")
+            return
+        }
+        
         print("Calibrating with \(weight)g...")
         let reader = PressureReader()
         reader.start()
@@ -29,7 +34,7 @@ struct Calibrate: ParsableCommand {
         let pressure = reader.getSnapshot()
         reader.stop()
         
-        print("Captured pressure: \(pressure)")
+        print("Captured pressure: \(String(format: "%.4f", pressure))")
         
         let profile = try Persistence.loadProfile() ?? CalibrationProfile(deviceIdentifier: "Default")
         let engine = CalibrationEngine(profile: profile)
@@ -39,7 +44,7 @@ struct Calibrate: ParsableCommand {
         print("Calibration point saved.")
         
         if let regression = engine.calculateRegression() {
-            print("Current Calibration: Slope=\(regression.slope), Intercept=\(regression.intercept)")
+            print("Current Calibration: Slope=\(String(format: "%.2f", regression.slope)), Intercept=\(String(format: "%.2f", regression.intercept))")
         }
     }
 }
@@ -50,9 +55,15 @@ struct Measure: ParsableCommand {
     @Flag(name: .shortAndLong, help: "Enable live updates.")
     var live: Bool = false
     
+    private static var activeReader: PressureReader?
     private static var activeDelegate: MeasurementDelegate?
     
     func run() throws {
+        guard MultitouchBridge.isAvailable else {
+            print("Error: Force Touch sensor not found.")
+            return
+        }
+        
         guard let profile = try Persistence.loadProfile(),
               let engine = CalibrationEngine(profile: profile).calculateRegression() else {
             print("Error: Device not calibrated. Please run 'forcescale calibrate --weight <grams>' first.")
@@ -65,9 +76,18 @@ struct Measure: ParsableCommand {
         if live {
             print("Live measurement (Press Ctrl+C to stop)...")
             let delegate = MeasurementDelegate(estimator: estimator)
+            Measure.activeReader = reader
             Measure.activeDelegate = delegate
             reader.delegate = delegate
             reader.start()
+            
+            // Set up signal handler for clean exit
+            signal(SIGINT) { _ in
+                print("\nStopping...")
+                Measure.activeReader?.stop()
+                exit(0)
+            }
+            
             RunLoop.main.run()
         } else {
             reader.start()
@@ -89,7 +109,15 @@ class MeasurementDelegate: PressureReaderDelegate {
     
     func pressureReader(_ reader: PressureReader, didUpdatePressure pressure: Double) {
         let weight = estimator.estimateWeight(pressure: pressure)
-        print(String(format: "\rEstimated Weight: %.2fg", weight), terminator: "")
+        
+        // Simple ASCII bar for pressure
+        let barLength = 20
+        let filled = Int(min(pressure, 1.0) * Double(barLength))
+        let bar = String(repeating: "█", count: filled) + String(repeating: "░", count: barLength - filled)
+        
+        // Use ANSI to clear line and return to start
+        print("\r\u{1B}[K", terminator: "") 
+        print(String(format: "Weight: %.2fg | [%@] P:%.3f", weight, bar, pressure), terminator: "")
         fflush(stdout)
     }
 }
@@ -98,8 +126,8 @@ struct Tare: ParsableCommand {
     static var configuration = CommandConfiguration(abstract: "Zero the scale with current weight.")
     
     func run() throws {
-        print("Taring scale...")
-        print("Tare not fully implemented for transient CLI yet. Use in UI for best results.")
+        print("Tare is best handled in the UI app or during live 'measure' sessions.")
+        print("Headless tare state is not currently persisted between CLI calls.")
     }
 }
 
