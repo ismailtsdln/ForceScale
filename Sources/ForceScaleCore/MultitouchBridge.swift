@@ -28,6 +28,7 @@ struct MTContact {
 public class MultitouchBridge {
     private var device: UnsafeMutableRawPointer?
     private static var instance: MultitouchBridge?
+    private var frameworkHandle: UnsafeMutableRawPointer?
     
     private var _MTDeviceCreateDefault: MTDeviceCreateDefault?
     private var _MTDeviceStart: MTDeviceStart?
@@ -36,11 +37,30 @@ public class MultitouchBridge {
     
     public var pressureHandler: ((Double) -> Void)?
     
+    public static var isAvailable: Bool {
+        let handle = dlopen("/System/Library/PrivateFrameworks/MultitouchSupport.framework/MultitouchSupport", RTLD_NOW)
+        guard let handle = handle else { return false }
+        let sym = dlsym(handle, "MTDeviceCreateDefault")
+        dlclose(handle)
+        return sym != nil
+    }
+    
     public init() {
         MultitouchBridge.instance = self
         loadFunctions()
         device = _MTDeviceCreateDefault?()
         
+        setupCallback()
+    }
+    
+    deinit {
+        stop()
+        if let handle = frameworkHandle {
+            dlclose(handle)
+        }
+    }
+    
+    private func setupCallback() {
         if let device = device {
             _ = _MTRegisterContactCallback?(device) { (_, contactsPtr, numContacts, _, _) -> Int32 in
                 var totalPressure: Float = 0
@@ -48,6 +68,7 @@ public class MultitouchBridge {
                     let contacts = contactsPtr.assumingMemoryBound(to: MTContact.self)
                     for i in 0..<Int(numContacts) {
                         let contact = contacts.advanced(by: i).pointee
+                        // We use the sum of pressure for all contacts as weight is distributed
                         totalPressure += contact.pressure
                     }
                     MultitouchBridge.instance?.pressureHandler?(Double(totalPressure))
@@ -60,8 +81,8 @@ public class MultitouchBridge {
     }
     
     private func loadFunctions() {
-        let handle = dlopen("/System/Library/PrivateFrameworks/MultitouchSupport.framework/MultitouchSupport", RTLD_NOW)
-        guard handle != nil else {
+        frameworkHandle = dlopen("/System/Library/PrivateFrameworks/MultitouchSupport.framework/MultitouchSupport", RTLD_NOW)
+        guard let handle = frameworkHandle else {
             return
         }
         

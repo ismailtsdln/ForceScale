@@ -1,18 +1,30 @@
 import SwiftUI
+import ForceScaleCore
 
 struct ContentView: View {
     @StateObject private var viewModel = MeasureViewModel()
     @State private var showingCalibration = false
     
+    private var isSensorAvailable: Bool {
+        return MultitouchBridge.isAvailable
+    }
+    
     var body: some View {
         ZStack {
             Color(NSColor.windowBackgroundColor).ignoresSafeArea()
             
-            VStack(spacing: 30) {
+            VStack(spacing: 25) {
                 // Header
                 HStack {
-                    Text("ForceScale")
-                        .font(.system(size: 24, weight: .bold, design: .rounded))
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("ForceScale")
+                            .font(.system(size: 24, weight: .bold, design: .rounded))
+                        if !isSensorAvailable {
+                            Text("Sensor not found")
+                                .font(.system(size: 10, weight: .bold))
+                                .foregroundColor(.red)
+                        }
+                    }
                     Spacer()
                     Button(action: { showingCalibration = true }) {
                         Image(systemName: "slider.horizontal.3")
@@ -26,9 +38,13 @@ struct ContentView: View {
                 Spacer()
                 
                 // Main Weight Display
-                VStack(spacing: 10) {
+                VStack(spacing: 15) {
                     Text(String(format: "%.1f", viewModel.currentWeight))
                         .font(.system(size: 80, weight: .thin, design: .monospaced))
+                        .foregroundColor(viewModel.isStable ? .primary : .primary.opacity(0.8))
+                        .scaleEffect(viewModel.isStable ? 1.05 : 1.0)
+                        .animation(.spring(response: 0.3, dampingFraction: 0.6), value: viewModel.isStable)
+                    
                     Text("GRAMS")
                         .font(.caption)
                         .kerning(4)
@@ -37,9 +53,39 @@ struct ContentView: View {
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 40)
                 .background(
-                    RoundedRectangle(cornerRadius: 20)
-                        .fill(Color.primary.opacity(0.05))
+                    RoundedRectangle(cornerRadius: 24)
+                        .fill(Color.primary.opacity(0.03))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 24)
+                                .stroke(viewModel.isStable ? Color.green.opacity(0.3) : Color.clear, lineWidth: 2)
+                        )
                 )
+                
+                // Pressure Bar
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Text("Pressure")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundColor(.secondary)
+                        Spacer()
+                        Text(String(format: "%.3f", viewModel.currentPressure))
+                            .font(.system(size: 10, design: .monospaced))
+                            .foregroundColor(.secondary)
+                    }
+                    GeometryReader { geo in
+                        ZStack(alignment: .leading) {
+                            Capsule()
+                                .fill(Color.primary.opacity(0.1))
+                                .frame(height: 4)
+                            Capsule()
+                                .fill(LinearGradient(colors: [.blue, .purple], startPoint: .leading, endPoint: .trailing))
+                                .frame(width: geo.size.width * min(CGFloat(viewModel.currentPressure), 1.0), height: 4)
+                                .animation(.interactiveSpring(), value: viewModel.currentPressure)
+                        }
+                    }
+                    .frame(height: 4)
+                }
+                .padding(.horizontal)
                 
                 // Stability & Status
                 HStack {
@@ -53,19 +99,21 @@ struct ContentView: View {
                 HStack(spacing: 20) {
                     Button(action: { viewModel.tare() }) {
                         Text("TARE")
+                            .font(.system(size: 14, weight: .bold))
                             .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.blue.opacity(0.2))
-                            .cornerRadius(10)
+                            .padding(.vertical, 12)
+                            .background(Color.blue.opacity(0.15))
+                            .cornerRadius(12)
                     }
                     .buttonStyle(.plain)
                     
                     Button(action: { viewModel.resetTare() }) {
                         Text("RESET")
+                            .font(.system(size: 14, weight: .bold))
                             .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.secondary.opacity(0.2))
-                            .cornerRadius(10)
+                            .padding(.vertical, 12)
+                            .background(Color.secondary.opacity(0.15))
+                            .cornerRadius(12)
                     }
                     .buttonStyle(.plain)
                 }
@@ -77,12 +125,12 @@ struct ContentView: View {
                 Text("EXPERIMENTAL MEASUREMENT\nNOT FOR PROFESSIONAL USE")
                     .font(.system(size: 10, weight: .medium))
                     .multilineTextAlignment(.center)
-                    .foregroundColor(.secondary.opacity(0.6))
-                    .padding(.bottom, 20)
+                    .foregroundColor(.secondary.opacity(0.4))
+                    .padding(.bottom, 10)
             }
             .padding()
         }
-        .frame(width: 350, height: 500)
+        .frame(width: 350, height: 550)
         .onAppear {
             viewModel.start()
         }
@@ -102,17 +150,11 @@ struct StatusIndicator: View {
     var body: some View {
         HStack(spacing: 6) {
             Circle()
-                .fill(isValid ? Color.green : Color.yellow)
-                .frame(width: 8, height: 8)
-            Text(label)
-                .font(.caption)
-                .foregroundColor(.secondary)
+                .fill(isValid ? Color.green : Color.yellow.opacity(0.5))
+                .frame(width: 6, height: 6)
+            Text(label.uppercased())
+                .font(.system(size: 9, weight: .bold))
+                .foregroundColor(.secondary.opacity(0.8))
         }
-    }
-}
-
-struct ContentView_Previews: PreviewProvider {
-    static var previews: some View {
-        ContentView()
     }
 }
