@@ -85,7 +85,7 @@ struct Measure: ParsableCommand {
             signal(SIGINT) { _ in
                 print("\nStopping...")
                 Measure.activeReader?.stop()
-                exit(0)
+                Darwin.exit(0)
             }
             
             RunLoop.main.run()
