@@ -1,0 +1,12 @@
+{
+  "": {
+    "swift-dependencies": "/Users/ismailtasdelen/Documents/GitHub/ForceScale/.build/arm64-apple-macosx/debug/ForceScaleCLI.build/master.swiftdeps"
+  },
+  "/Users/ismailtasdelen/Documents/GitHub/ForceScale/Sources/ForceScaleCLI/main.swift": {
+    "dependencies": "/Users/ismailtasdelen/Documents/GitHub/ForceScale/.build/arm64-apple-macosx/debug/ForceScaleCLI.build/main.d",
+    "object": "/Users/ismailtasdelen/Documents/GitHub/ForceScale/.build/arm64-apple-macosx/debug/ForceScaleCLI.build/main.swift.o",
+    "swiftmodule": "/Users/ismailtasdelen/Documents/GitHub/ForceScale/.build/arm64-apple-macosx/debug/ForceScaleCLI.build/main~partial.swiftmodule",
+    "swift-dependencies": "/Users/ismailtasdelen/Documents/GitHub/ForceScale/.build/arm64-apple-macosx/debug/ForceScaleCLI.build/main.swiftdeps",
+    "diagnostics": "/Users/ismailtasdelen/Documents/GitHub/ForceScale/.build/arm64-apple-macosx/debug/ForceScaleCLI.build/main.dia"
+  }
+}
