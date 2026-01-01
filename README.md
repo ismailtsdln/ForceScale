@@ -44,7 +44,7 @@ To build the project and install the CLI tool:
 
 ```bash
 # Clone the repository
-git clone https://github.com/ismailtasdelen/ForceScale.git
+git clone https://github.com/ismailtsdln/ForceScale.git
 cd ForceScale
 
 # Build the CLI in release mode
